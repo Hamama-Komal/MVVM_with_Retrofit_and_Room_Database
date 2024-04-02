@@ -15,28 +15,45 @@ class QuoteRepository(
 ) {
 
     // mutable liveData
-    private val quoteLiveData = MutableLiveData<QuoteList>()
+    private val quoteLiveData = MutableLiveData<Response<QuoteList>>()
 
     // liveData
-    val quotes : LiveData<QuoteList>
+    val quotes : LiveData<Response<QuoteList>>
         get() = quoteLiveData
 
     suspend fun getQuotes(){
 
         if(NetworkUtils.isNetworkAvailable(applicationContext)){
             // Network call result
-            val result =  quoteServices.getQuote()
-            if(result.body() != null){
-                // To store the result in database
-                quoteDatabase.quoteDao().insertQuote(result.body()!!)
+            try {
+                val result =  quoteServices.getQuote()
+                if(result.body() != null) {
+                    // To store the result in database
+                    quoteDatabase.quoteDao().insertQuote(result.body()!!)
 
-                quoteLiveData.postValue(result.body())
+                    quoteLiveData.postValue(Response.Success(result.body()))
+                }
+                else{
+                    quoteLiveData.postValue(Response.Error("API ERROR"))
+                }
             }
+            catch (e: Exception){
+                  quoteLiveData.postValue(Response.Error(e.message.toString()))
+            }
+
         }
         else{
+            try {
 
-            val quote = quoteDatabase.quoteDao().getQuotes()
-            quoteLiveData.postValue(quote as QuoteList?)
+                val quote = quoteDatabase.quoteDao().getQuotes()
+                quoteLiveData.postValue(Response.Success(quote as QuoteList?))
+
+            }catch (e: Exception){
+
+                quoteLiveData.postValue(Response.Error(e.message.toString()))
+            }
+
+
         }
 
     }

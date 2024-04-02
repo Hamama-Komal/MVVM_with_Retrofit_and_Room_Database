@@ -14,6 +14,7 @@ import com.example.mvvmretrofitroom.api.QuoteServices
 import com.example.mvvmretrofitroom.api.RetrofitHelper
 import com.example.mvvmretrofitroom.databinding.ActivityMainBinding
 import com.example.mvvmretrofitroom.repository.QuoteRepository
+import com.example.mvvmretrofitroom.repository.Response
 import com.example.mvvmretrofitroom.viewmodel.MainViewModel
 import com.example.mvvmretrofitroom.viewmodel.MainViewModelFactory
 
@@ -35,9 +36,24 @@ class MainActivity : AppCompatActivity() {
         mainViewModel =ViewModelProvider(this, MainViewModelFactory(repository)).get(MainViewModel::class.java)
 
         mainViewModel.quotes.observe(this, Observer {
+            when(it){
+                is Response.Loading ->{}
+                is Response.Error -> {
+                    Toast.makeText(this, "Some Error Occur", Toast.LENGTH_SHORT).show()
+                }
+                is Response.Success -> {
+                    it.data?.let {
+                        val allQuotes = it.joinToString("\n\n") { it.quote }
+                        binding.quote = allQuotes
+                       // Toast.makeText(this, "Total Quotes: ${it.size}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
 
+            /*
             val allQuotes = it.joinToString("\n\n") { it.quote }
             binding.quote = allQuotes
+            */
             // Log.d("QUOTE_RESULT", it.toString())
             // Toast.makeText(this, "Total Quotes: ${it.size}", Toast.LENGTH_SHORT).show()
         })
