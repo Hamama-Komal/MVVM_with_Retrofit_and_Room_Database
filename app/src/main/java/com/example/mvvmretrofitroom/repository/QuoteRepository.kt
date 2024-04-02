@@ -40,4 +40,16 @@ class QuoteRepository(
         }
 
     }
+
+    // worker function
+    suspend fun getQuotesBackground(){
+
+       // val randomNumber = (Math.random()*10).toInt()
+        val result = quoteServices.getQuote()
+        if(result.body() != null) {
+            // To store the result in database
+            quoteDatabase.quoteDao().insertQuote(result.body()!!)
+        }
+
+    }
 }
